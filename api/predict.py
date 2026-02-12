@@ -1,14 +1,7 @@
 from http.server import BaseHTTPRequestHandler
 import json
-import pickle
 import numpy as np
-import pandas as pd
 from datetime import datetime
-import os
-import sys
-
-# Add parent directory to path to import models
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 class handler(BaseHTTPRequestHandler):
     
@@ -19,22 +12,8 @@ class handler(BaseHTTPRequestHandler):
         data = json.loads(post_data.decode('utf-8'))
         
         try:
-            # Load models
-            root_dir = os.path.dirname(os.path.dirname(__file__))
-            
-            # Handle NumPy version compatibility
-            np_load_old = np.load
-            np.load = lambda *a, **k: np_load_old(*a, allow_pickle=True, **k)
-            
-            with open(os.path.join(root_dir, 'default_model.pkl'), 'rb') as f:
-                default_model = pickle.load(f)
-            with open(os.path.join(root_dir, 'scaler.pkl'), 'rb') as f:
-                scaler = pickle.load(f)
-                
-            np.load = np_load_old
-            
-            # Process input data
-            result = self.make_prediction(data, default_model, scaler)
+            # Process input data (lightweight rule-based prediction)
+            result = self.make_prediction(data)
             
             # Send response
             self.send_response(200)
@@ -60,7 +39,12 @@ class handler(BaseHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.end_headers()
     
-    def make_prediction(self, data, model, scaler):
+    def make_prediction(self, data):
+        """
+        Lightweight rule-based prediction algorithm.
+        For full ML model, upgrade to Vercel Pro or use external ML API.
+        This demo uses risk scoring based on financial indicators.
+        """
         # Extract data
         annual_inc = float(data['annual_inc'])
         dti = float(data['dti'])
@@ -69,80 +53,88 @@ class handler(BaseHTTPRequestHandler):
         int_rate = float(data['int_rate'])
         installment = float(data['installment'])
         loan_issue_date = data['loan_issue_date']
-        open_acc = int(data['open_acc'])
-        total_acc = int(data['total_acc'])
-        revol_bal = float(data['revol_bal'])
-        revol_util = float(data['revol_util'])
         total_paid_so_far = float(data['total_paid_so_far'])
         num_payments_made = int(data['num_payments_made'])
         total_rec_late_fee = float(data['total_rec_late_fee'])
         last_pymnt_amnt = float(data['last_pymnt_amnt'])
         last_pymnt_date = data['last_pymnt_date']
-        last_credit_pull_date = data['last_credit_pull_date']
+        revol_util = float(data['revol_util'])
         
         # Calculate date-based features
-        reference_date = pd.Timestamp('2026-02-12')
-        loan_issue_pd = pd.Timestamp(loan_issue_date)
-        last_pymnt_pd = pd.Timestamp(last_pymnt_date)
-        last_credit_pull_pd = pd.Timestamp(last_credit_pull_date)
+        from datetime import datetime
+        reference_date = datetime(2026, 2, 12)
+        loan_issue_dt = datetime.fromisoformat(loan_issue_date)
+        last_pymnt_dt = datetime.fromisoformat(last_pymnt_date)
         
-        days_since_last_payment = (reference_date - last_pymnt_pd).days
-        days_since_credit_pull = (reference_date - last_credit_pull_pd).days
-        days_since_loan_issue = (reference_date - loan_issue_pd).days
+        days_since_last_payment = (reference_date - last_pymnt_dt).days
+        days_since_loan_issue = (reference_date - loan_issue_dt).days
         
-        # Calculate derived features
-        payment_to_loan_ratio = (last_pymnt_amnt / loan_amnt * 100) if loan_amnt > 0 else 0
+        # Calculate derived metrics
         expected_payments = max(1, days_since_loan_issue // 30)
         payment_compliance_rate = (num_payments_made / expected_payments * 100) if expected_payments > 0 else 100
         total_paid_ratio = (total_paid_so_far / loan_amnt * 100) if loan_amnt > 0 else 0
         avg_monthly_payment = total_paid_so_far / num_payments_made if num_payments_made > 0 else 0
+        payment_to_loan_ratio = (last_pymnt_amnt / loan_amnt * 100) if loan_amnt > 0 else 0
         
-        loan_year = loan_issue_pd.year
-        last_payment_month = last_pymnt_pd.month
-        credit_pull_month = last_credit_pull_pd.month
+        # Risk scoring algorithm (0-100)
+        risk_score = 0
         
-        # Calculate engineered features (as in training)
-        total_pymnt = total_paid_so_far
-        total_rec_prncp = total_paid_so_far * 0.7  # Approximate
-        total_rec_int = total_paid_so_far * 0.3   # Approximate
-        funded_amnt = loan_amnt
+        # Factor 1: Payment history (40 points)
+        if payment_compliance_rate < 50:
+            risk_score += 40
+        elif payment_compliance_rate < 80:
+            risk_score += 25
+        elif payment_compliance_rate < 95:
+            risk_score += 10
+        else:
+            risk_score += 0
+            
+        # Factor 2: Days since last payment (25 points)
+        if days_since_last_payment > 90:
+            risk_score += 25
+        elif days_since_last_payment > 60:
+            risk_score += 18
+        elif days_since_last_payment > 30:
+            risk_score += 10
+        else:
+            risk_score += 0
+            
+        # Factor 3: Late fees (15 points)
+        if total_rec_late_fee > 100:
+            risk_score += 15
+        elif total_rec_late_fee > 50:
+            risk_score += 10
+        elif total_rec_late_fee > 0:
+            risk_score += 5
+            
+        # Factor 4: Interest rate (10 points) - high rate = risky borrower
+        if int_rate > 20:
+            risk_score += 10
+        elif int_rate > 15:
+            risk_score += 6
+        elif int_rate > 12:
+            risk_score += 3
+            
+        # Factor 5: DTI ratio (10 points)
+        if dti > 35:
+            risk_score += 10
+        elif dti > 25:
+            risk_score += 6
+        elif dti > 20:
+            risk_score += 3
+            
+        # Factor 6: Revolving utilization (5 points)
+        if revol_util > 80:
+            risk_score += 5
+        elif revol_util > 60:
+            risk_score += 3
+            
+        # Adjust based on payment amount vs expected
+        if avg_monthly_payment < installment * 0.5:
+            risk_score += 5
         
-        principal_paid_ratio = (total_rec_prncp / loan_amnt * 100) if loan_amnt > 0 else 0
-        payment_progress = (num_payments_made / term * 100) if term > 0 else 0
-        total_paid_ratio_calc = (total_pymnt / funded_amnt * 100) if funded_amnt > 0 else 0
-        avg_payment_ratio = (avg_monthly_payment / installment * 100) if installment > 0 else 0
-        payment_to_loan_ratio_calc = (total_pymnt / loan_amnt * 100) if loan_amnt > 0 else 0
-        
-        # Prepare feature vector (matching training features)
-        features = np.array([[
-            principal_paid_ratio,
-            payment_progress,
-            total_paid_ratio_calc,
-            avg_payment_ratio,
-            payment_to_loan_ratio_calc,
-            last_pymnt_amnt,
-            days_since_last_payment,
-            term,
-            int_rate,
-            0,  # grade_encoded (placeholder)
-            dti,
-            revol_util,
-            annual_inc,
-            installment,
-            loan_amnt,
-            days_since_credit_pull,
-            total_acc,
-            open_acc,
-            revol_bal,
-            total_rec_late_fee
-        ]])
-        
-        # Scale features
-        features_scaled = scaler.transform(features)
-        
-        # Make prediction
-        prediction_proba = model.predict_proba(features_scaled)[0]
-        default_probability = prediction_proba[1] * 100
+        # Normalize to percentage
+        default_probability = min(100, max(0, risk_score))
         
         # Prepare response
         result = {
