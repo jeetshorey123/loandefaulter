@@ -1,6 +1,5 @@
 from http.server import BaseHTTPRequestHandler
 import json
-import numpy as np
 from datetime import datetime
 
 class handler(BaseHTTPRequestHandler):
