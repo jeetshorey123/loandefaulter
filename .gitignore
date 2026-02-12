@@ -49,3 +49,7 @@ Data_Dictionary.xlsx
 
 # Environment variables
 .env
+
+# Vercel
+.vercel
+

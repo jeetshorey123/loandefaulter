@@ -1,24 +1,34 @@
 # 💰 Loan Default Prediction System
 
-A comprehensive machine learning application built with Streamlit that predicts loan defaults at two levels:
-1. **Overall Default Prediction** - Predicts if a borrower will default on their loan
-2. **Next Payment Prediction** - Predicts if a borrower will default on their next monthly payment
+A comprehensive machine learning web application that predicts loan defaults using AI. Now available as both a **modern web app (Vercel)** and **Streamlit dashboard**.
+
+## ✨ Live Demo
+
+🌐 **Web App**: Deploy to Vercel for instant access
+📊 **Streamlit**: Interactive dashboard version
 
 ## 🎯 Features
 
 ### Overall Default Prediction
 - Comprehensive risk assessment based on borrower profile
-- Real-time probability calculations
+- Real-time probability calculations with ML models
 - Interactive risk score visualization
 - Key risk factor identification
 - Actionable recommendations
+- Beautiful, responsive UI
 
-### Monthly Payment Tracker
-- Month-wise installment tracking
-- Next payment default prediction
-- Payment timeline visualization
-- Payment consistency analysis
-- Early warning system for potential defaults
+### Two Versions Available
+
+1. **Modern Web App (Vercel)**
+   - Static HTML/CSS/JavaScript frontend
+   - Python serverless API for predictions
+   - Lightning-fast deployment
+   - Mobile-responsive design
+   
+2. **Streamlit Dashboard**
+   - Interactive Python dashboard
+   - Real-time data visualization
+   - Advanced analytics and charts
 
 ## 📊 Dataset
 

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💰 Loan Default Prediction System</title>
+    <link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 class="main-header">💰 Loan Default Prediction System</h1>
+            <p class="subtitle">AI-Powered Risk Assessment for Loan Defaults</p>
+        </header>
+
+        <div class="content">
+            <div class="sub-header">📊 Overall Loan Default Risk Assessment</div>
+            <p class="description">Enter borrower details to predict the likelihood of loan default.</p>
+
+            <form id="predictionForm">
+                <div class="form-grid">
+                    <!-- Personal Information -->
+                    <div class="form-section">
+                        <h3>Personal Information</h3>
+                        <div class="form-group">
+                            <label for="annual_inc">Annual Income ($)</label>
+                            <input type="number" id="annual_inc" name="annual_inc" min="1000" max="10000000" value="50000" step="1000" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="dti">Debt-to-Income Ratio (%)</label>
+                            <select id="dti" name="dti" required>
+                                <option value="2.5">0-5%</option>
+                                <option value="7.5">5-10%</option>
+                                <option value="12.5">10-15%</option>
+                                <option value="17.5" selected>15-20%</option>
+                                <option value="22.5">20-25%</option>
+                                <option value="27.5">25-30%</option>
+                                <option value="32.5">30-35%</option>
+                                <option value="37.5">35-40%</option>
+                                <option value="45.0">40%+</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Loan Details -->
+                    <div class="form-section">
+                        <h3>Loan Details</h3>
+                        <div class="form-group">
+                            <label for="loan_amnt">Loan Amount ($)</label>
+                            <input type="number" id="loan_amnt" name="loan_amnt" min="1000" max="40000" value="10000" step="500" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="term">Term</label>
+                            <select id="term" name="term" required>
+                                <option value="36">36 months</option>
+                                <option value="60">60 months</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="int_rate">Interest Rate (%)</label>
+                            <input type="number" id="int_rate" name="int_rate" min="5.0" max="30.0" value="12.0" step="0.1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="installment">Monthly Installment ($)</label>
+                            <input type="number" id="installment" name="installment" min="50" max="2000" value="300" step="10" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="loan_issue_date">Loan Issue Date</label>
+                            <input type="date" id="loan_issue_date" name="loan_issue_date" value="2023-01-01" required>
+                        </div>
+                    </div>
+
+                    <!-- Credit Information -->
+                    <div class="form-section">
+                        <h3>Credit Information</h3>
+                        <div class="form-group">
+                            <label for="open_acc">Open Credit Lines</label>
+                            <input type="number" id="open_acc" name="open_acc" min="0" max="50" value="10" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="total_acc">Total Credit Lines</label>
+                            <input type="number" id="total_acc" name="total_acc" min="0" max="100" value="20" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="revol_bal">Revolving Balance ($)</label>
+                            <input type="number" id="revol_bal" name="revol_bal" min="0" max="500000" value="10000" step="500" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="revol_util">Revolving Utilization (%)</label>
+                            <input type="number" id="revol_util" name="revol_util" min="0" max="100" value="50" step="0.1" required>
+                        </div>
+                    </div>
+
+                    <!-- Repayment History -->
+                    <div class="form-section">
+                        <h3>Repayment History</h3>
+                        <div class="form-group">
+                            <label for="total_paid_so_far">Total Amount Paid So Far ($)</label>
+                            <input type="number" id="total_paid_so_far" name="total_paid_so_far" min="0" max="80000" value="3600" step="100" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="num_payments_made">Number of Payments Made</label>
+                            <input type="number" id="num_payments_made" name="num_payments_made" min="0" max="60" value="12" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="total_rec_late_fee">Total Late Fees Received ($)</label>
+                            <input type="number" id="total_rec_late_fee" name="total_rec_late_fee" min="0" max="10000" value="0" step="10" required>
+                        </div>
+                    </div>
+
+                    <!-- Payment Information -->
+                    <div class="form-section">
+                        <h3>Payment Information</h3>
+                        <div class="form-group">
+                            <label for="last_pymnt_amnt">Last Payment Amount ($)</label>
+                            <input type="number" id="last_pymnt_amnt" name="last_pymnt_amnt" min="0" max="50000" value="300" step="50" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="last_pymnt_date">Last Payment Date</label>
+                            <input type="date" id="last_pymnt_date" name="last_pymnt_date" value="2024-01-01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="last_credit_pull_date">Last Credit Pull Date</label>
+                            <input type="date" id="last_credit_pull_date" name="last_credit_pull_date" value="2024-06-01" required>
+                        </div>
+                        <div class="info-box">
+                            💡 <strong>Tip:</strong> If making regular payments, set 'Last Payment Date' to within the last 30-60 days for accurate risk assessment.
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="predict-button" id="predictBtn">🔮 Predict Default Risk</button>
+            </form>
+
+            <div id="loading" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Analyzing borrower data...</p>
+            </div>
+
+            <div id="results" class="results" style="display: none;">
+                <div class="sub-header">📊 Prediction Results</div>
+                
+                <div class="prediction-box" id="predictionBox">
+                    <div class="risk-header">
+                        <h2 id="riskTitle"></h2>
+                        <div class="probability" id="probabilityText"></div>
+                    </div>
+                    
+                    <div class="gauge-container">
+                        <div class="gauge">
+                            <div class="gauge-fill" id="gaugeFill"></div>
+                            <div class="gauge-text" id="gaugeText">0%</div>
+                        </div>
+                    </div>
+
+                    <div class="metrics-grid" id="metricsGrid"></div>
+                    
+                    <div class="recommendation" id="recommendation"></div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>⚠️ <strong>Disclaimer:</strong> This system provides risk assessments to support decision-making, but should not be the sole factor in loan approval or management decisions.</p>
+            <p class="powered-by">Powered by Machine Learning | Created by Jeet Shorey</p>
+        </footer>
+    </div>
+
+    <script src="static/script.js"></script>
+</body>
+</html>
